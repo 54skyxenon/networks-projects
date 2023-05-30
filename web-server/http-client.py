@@ -35,4 +35,4 @@ if __name__ == '__main__':
     filename = sys.argv[3]
 
     # Call the HTTP GET function
-    http_get(server_host, server_port, filename)    
+    http_get(server_host, server_port, filename)
