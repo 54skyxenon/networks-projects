@@ -56,6 +56,6 @@ if __name__ == '__main__':
             # Establish the connection
             connection_socket, addr = server_socket.accept()
 
-            # OPTIONAL EXERCISE 1: Service the client request in a separate thread
+            # OPTIONAL EXERCISE: Service the client request in a separate thread
             t = threading.Thread(target=handle_request, args=(connection_socket,))
             t.start()
