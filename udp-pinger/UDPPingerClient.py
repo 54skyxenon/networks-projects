@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 # UDPPingerClient.py
 
 from socket import *
