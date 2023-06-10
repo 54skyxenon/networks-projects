@@ -35,7 +35,7 @@ def main():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
 
     if len(sys.argv) < 4:
-        exit('Usage: ./mail-client <gmail-sender-address> <gmail-password> <receiver-address> <image (Optional)>')
+        exit('Usage: ./mail-client.py <gmail-sender-address> <gmail-password> <receiver-address> <image path (Optional)>')
 
     my_email, my_password, to_email = sys.argv[1:4]
     
