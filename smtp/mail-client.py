@@ -21,6 +21,7 @@ class SMTPMessage:
             if isinstance(self.command, str):
                 self.command = self.command.encode()
 
+            print(f'C: {self.command.decode()}')
             SMTPMessage.client_socket.send(self.command)
     
         if self.expected is not None:
@@ -33,10 +34,10 @@ def main():
     # YOLO!
     warnings.filterwarnings('ignore', category=DeprecationWarning)
 
-    if len(sys.argv) != 4:
-        exit('Usage: ./mail-client <gmail-sender-address> <gmail-password> <receiver-address>')
+    if len(sys.argv) < 4:
+        exit('Usage: ./mail-client <gmail-sender-address> <gmail-password> <receiver-address> <image (Optional)>')
 
-    my_email, my_password, to_email = sys.argv[1:]
+    my_email, my_password, to_email = sys.argv[1:4]
     
     # Call Google mail server `mailserver` (DO NOT use smtp.google.com)
     mailserver = ('smtp.gmail.com', 587)
@@ -50,7 +51,7 @@ def main():
     # Send HELO command and print server response.
     SMTPMessage(command='HELO Brandon\r\n', expected='250')
 
-    # Start the TLS encryption
+    # Start the TLS encryption, Optional Exercise
     SMTPMessage(command='STARTTLS\r\n', expected='220')
     SMTPMessage.client_socket = ssl.wrap_socket(SMTPMessage.client_socket)
 
@@ -75,11 +76,40 @@ def main():
     SMTPMessage(command='DATA\r\n', expected='354')
 
     # Send message data.
-    subject = 'Song Lyrics'
+    subject = 'Some Wisdom'
+    plaintext_mime = 'Content-Type: text/plain\r\n\r\n'
+
+    # Send headers first
     SMTPMessage(command=f'Subject: {subject}\n')
     SMTPMessage(command=f'To: {to_email}\n')
-    SMTPMessage(command=f'Reply-To: {my_email}\r\n\r\n')
-    SMTPMessage(command='Shawty\'s like a melody in my head!!')
+    SMTPMessage(command=f'Reply-To: {my_email}\n')
+
+    # Embed an image in email, Optional Exercise
+    if len(sys.argv) > 4:
+        SMTPMessage(command=f'MIME-Version: 1.0\n')
+        boundary = 'simple boundary'
+        boundary_start = f'--{boundary}\r\n'
+        SMTPMessage(command=f'Content-Type: multipart/mixed; boundary="{boundary}"\r\n\r\n')
+
+        # Form the text part
+        SMTPMessage(command=boundary_start)
+        SMTPMessage(command=plaintext_mime)
+        SMTPMessage(command="I'd rather trust and regret, than doubt and regret.\r\n")
+
+        # Form the image part: read the image file and encode it in base64
+        image_path = sys.argv[4]
+        with open(image_path, 'rb') as f:
+            SMTPMessage(command=boundary_start)
+            SMTPMessage(command=f'Content-Type: image/png; name="{image_path}"\r\n')
+            SMTPMessage(command='Content-Transfer-Encoding: base64\r\n')
+            SMTPMessage(command=f'Content-Disposition: attachment; filename="{image_path}"\r\n\r\n')
+            image_data = f.read()
+            SMTPMessage(command=f'{base64.b64encode(image_data).decode()}\r\n\r\n')
+
+        SMTPMessage(command=f'--{boundary}--\r\n')
+    else:
+        SMTPMessage(command=plaintext_mime)
+        SMTPMessage(command='Shawty\'s like a melody in my head!!')
 
     # Message ends with a single period.
     SMTPMessage(command='\r\n.\r\n', expected='250')
