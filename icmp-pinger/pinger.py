@@ -45,11 +45,15 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
 
-        # TODO: Fetch the ICMP header from the IP packet
+        # Fetch the ICMP header from the IP packet
+        icmp_type, icmp_code, icmp_checksum, icmp_id, icmp_sequence = struct.unpack('bbHHh', recPacket[20:28])
+        print(f'type: {icmp_type}, code: {icmp_code}, checksum: {icmp_checksum}, id: {icmp_id}, sequence: {icmp_sequence}')
 
         timeLeft = timeLeft - howLongInSelect
         if timeLeft <= 0:
             return 'Request timed out.'
+        
+        return f'Reply time: {1000 * (timeReceived - startedSelect)} ms'
 
 def sendOnePing(mySocket, destAddr, ID):
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
@@ -74,8 +78,7 @@ def sendOnePing(mySocket, destAddr, ID):
     packet = header + data
 
     mySocket.sendto(packet, (destAddr, 1)) # AF_INET address must be tuple, not str
-    # Both LISTS and TUPLES consist of a number of objects
-    # which can be referenced by their position number within the object.
+    # Both LISTS and TUPLES consist of a number of objects which can be referenced by their position number within the object.
     
 def doOnePing(destAddr, timeout):
     icmp = getprotobyname('icmp')
@@ -103,4 +106,4 @@ def ping(host, timeout=1):
     
     return delay
 
-ping('google.com')
+ping('microsoft.com')
