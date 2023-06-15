@@ -11,6 +11,24 @@ import select
 
 ICMP_ECHO_REQUEST = 8
 ICMP_HEADER_FORMAT = 'bbHHh'
+ERROR_CODES = {
+    0: 'Net Unreachable',
+    1: 'Host Unreachable',
+    2: 'Protocol Unreachable',
+    3: 'Port Unreachable',
+    4: 'Fragmentation Needed and Don\'t Fragment was Set',
+    5: 'Source Route Failed',
+    6: 'Destination Network Unknown',
+    7: 'Destination Host Unknown',
+    8: 'Source Host Isolated',
+    9: 'Communication with Destination Network is Administratively Prohibited',
+    10: 'Communication with Destination Host is Administratively Prohibited',
+    11: 'Destination Network Unreachable for Type of Service',
+    12: 'Destination Host Unreachable for Type of Service',
+    13: 'Communication Administratively Prohibited',
+    14: 'Host Precedence Violation',
+    15: 'Precedence cutoff in effect'
+}
 TIMED_OUT = 'Request timed out.'
 
 def checksum(string):
@@ -57,6 +75,11 @@ def receiveOnePing(mySocket, ID, timeout):
             print(f'type: {icmp_type}, code: {icmp_code}, checksum: {icmp_checksum}, id: {icmp_id}, sequence: {icmp_sequence}')
             rtt = timeReceived - struct.unpack('d', payload)[0]
             return rtt
+        
+        # Optional Exercise: Parse and display the ICMP response errors
+        # To test this, try a broken website on iidrn.com
+        if icmp_type == 3:
+            print(f'got error {icmp_code}: {ERROR_CODES[icmp_code]}')
 
         timeLeft = timeLeft - howLongInSelect
         if timeLeft <= 0:
@@ -100,18 +123,26 @@ def doOnePing(destAddr, timeout):
     mySocket.close()
     return delay
 
-def ping(host, timeout=1):
+def ping(host, timeout=1, sample_size=10, sleep_duration=1):
     # timeout=1 means: If one second goes by without a reply from the server,
     # the client assumes that either the client's ping or the server's pong is lost
     dest = gethostbyname(host)
     print(f'Pinging {dest} using Python:\n')
 
     # Send ping requests to a server separated by approximately one second
-    while True:
+    rtt_data = []
+    for _ in range(sample_size):
         delay = doOnePing(dest, timeout)
         print(delay)
-        time.sleep(1) # one second
+
+        if delay != TIMED_OUT:
+            rtt_data.append(delay)
+            
+        time.sleep(sleep_duration)
     
-    return delay
+    # Optional Exercise: Summarize RTT data at the end
+    if rtt_data:
+        stats = [min(rtt_data), max(rtt_data), mean(rtt_data), 100 * (sample_size - len(rtt_data)) / sample_size]
+        print(f'=== Min: {stats[0]:.3f} secs, Max: {stats[1]:.3f} secs, Avg: {stats[2]:.3f} secs, Loss: {stats[3]:.3f}% === ')
 
 ping('google.com')
