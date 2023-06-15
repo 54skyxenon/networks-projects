@@ -1,4 +1,5 @@
 #!/usr/local/bin/python3
+# pinger.py
 
 from socket import *
 from statistics import mean
