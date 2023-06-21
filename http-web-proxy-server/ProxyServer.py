@@ -1,10 +1,9 @@
 #!/usr/local/bin/python3
 # ProxyServer.py
 
-# Inspiration from: https://github.com/jzplp/Computer-Network-A-Top-Down-Approach-Answer/blob/master/Chapter-2/Socket-Programming-Assignment-4/ProxyServer.py
-
 from socket import *
 import os
+import signal
 import sys
 
 def recv_all(sock, buffer_size=1024):
@@ -18,16 +17,33 @@ def recv_all(sock, buffer_size=1024):
     
     return data.decode()
 
+def send_200(sock, payload):
+    sock.sendall(b'HTTP/1.1 200 OK\r\n')
+    sock.sendall(b'Content-Type: text/html\r\n\r\n')
+    sock.sendall(payload)
+
+def send_404(sock):
+    sock.sendall(b'HTTP/1.1 404 Not Found\r\n')
+    sock.sendall(b'Content-Type: text/plain\r\n\r\n')
+    sock.sendall(b'404 Not Found')
+
 def main():
     if len(sys.argv) < 2:
         print('Usage: ./ProxyServer.py port_number\n[port_number: Which port should localhost use?]')
-        sys.exit(2)
+        exit(2)
 
     # Create a server socket, bind it to a port and start listening
     tcp_server_socket = socket(AF_INET, SOCK_STREAM)
     tcp_server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     tcp_server_socket.bind(('localhost', int(sys.argv[1])))
     tcp_server_socket.listen()
+
+    def signal_handler(sig, frame):
+        print('\nClosing server socket and shutting down...')
+        tcp_server_socket.close()
+        exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     while True:
         # Start receiving data from the client
@@ -48,14 +64,12 @@ def main():
         file_exists = False
 
         try:
-            # Check whether the file exist in the cache
+            # OPTIONAL EXERCISE: Check whether the file exist in the cache
             with open(cached_path, 'rb') as f:
-                output_data = f.read()
+                cached_payload = f.read()
                 file_exists = True
                 # ProxyServer finds a cache hit and generates a response message
-                tcp_client_socket.send(b'HTTP/1.1 200 OK\r\n')
-                tcp_client_socket.send(b'Content-Type: text/html\r\n\r\n')
-                tcp_client_socket.send(output_data)
+                send_200(tcp_client_socket, cached_payload)
             
             print('Cache hit!')
         # Error handling for file not found in cache
@@ -75,13 +89,19 @@ def main():
                         file_obj.write(f"GET /{resource_name} HTTP/1.0\r\n\r\n".encode())
                         # Read the response into buffer
                         buf = file_obj.read()
-                        payload = buf.split(b'\r\n\r\n')[1]
+                        header, payload = buf.split(b'\r\n\r\n')
+
+                        # OPTIONAL EXERCISE: Handles 404
+                        status_code = header.split()[1].decode()
+                        if status_code == '404':
+                            print('404 Not Found')
+                            send_404(tcp_client_socket)
+                            tcp_client_socket.close()
+                            continue
 
                         # Create a new file in the cache for the requested file.
                         # Also send the response in the buffer to client socket and the corresponding file in the cache
-                        tcp_client_socket.send(b'HTTP/1.1 200 OK\r\n')
-                        tcp_client_socket.send(b'Content-Type: text/html\r\n\r\n')
-                        tcp_client_socket.send(payload)
+                        send_200(tcp_client_socket, payload)
 
                         cached_dir = os.path.dirname(cached_path)
                         os.makedirs(cached_dir, exist_ok=True)
@@ -90,15 +110,10 @@ def main():
                 except:
                     print('Illegal request')
             else:
-                # HTTP response message for file not found
-                tcp_client_socket.send(b'HTTP/1.0 404 Not Found\r\n')
-                tcp_client_socket.send(b'Content-Type: text/plain\r\n\r\n')
-                tcp_client_socket.send(b'404 Not Found')
+                print('Error sending cached data!')
 
         # Close the client and the server sockets
         tcp_client_socket.close()
-
-    tcp_server_socket.close()
 
 if __name__ == '__main__':
     main()
