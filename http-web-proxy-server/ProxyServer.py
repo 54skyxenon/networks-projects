@@ -7,14 +7,14 @@ from socket import *
 import sys
 
 if len(sys.argv) < 2:
-    print('Usage: ./ProxyServer.py server_ip\n[server_ip: It is the IP Address Of Proxy Server]')
+    print('Usage: ./ProxyServer.py port_number\n[port_number: Which port should localhost use?]')
     sys.exit(2)
 
 # Create a server socket, bind it to a port and start listening
-tcpSerSock = socket(AF_INET, SOCK_STREAM)
-tcpSerSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-tcpSerSock.bind((sys.argv[1], 8888))
-tcpSerSock.listen()
+tcp_server_socket = socket(AF_INET, SOCK_STREAM)
+tcp_server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+tcp_server_socket.bind(('localhost', int(sys.argv[1])))
+tcp_server_socket.listen()
 
 def recv_all(sock, buffer_size=1024):
     '''Read until EOF in case buffer is too small.'''
@@ -30,61 +30,62 @@ def recv_all(sock, buffer_size=1024):
 while True:
     # Start receiving data from the client
     print('Ready to serve...')
-    tcpCliSock, addr = tcpSerSock.accept()
+    tcp_client_socket, addr = tcp_server_socket.accept()
     print('Received a connection from:', addr)
-    message = recv_all(tcpCliSock)
+    message = recv_all(tcp_client_socket)
     # print(message)
 
     if not message:
         continue
 
-    # Extract the filename from the given message
+    # Extract the file name from the given message
     print(message.split()[1])
-    filename = message.split()[1].partition("/")[2]
-    fileExists = False
+    file_name = message.split()[1].partition("/")[2]
+    file_exists = False
 
     try:
         # Check whether the file exist in the cache
-        f = open(filename, "r")
-        outputdata = f.read()
-        fileExists = True
+        f = open(file_name, "r")
+        output_data = f.read()
+        file_exists = True
         # ProxyServer finds a cache hit and generates a response message
-        tcpCliSock.send(b'HTTP/1.1 200 OK\r\n')
-        tcpCliSock.send(b'Content-Type: text/html\r\n\r\n')
-        tcpCliSock.send(outputdata.encode())
+        tcp_client_socket.send(b'HTTP/1.1 200 OK\r\n')
+        tcp_client_socket.send(b'Content-Type: text/html\r\n\r\n')
+        tcp_client_socket.send(output_data.encode())
         print('Read from cache')
     # Error handling for file not found in cache
     except IOError:
-        if not fileExists:
+        if not file_exists:
             # Create a socket on the proxyserver
             c = socket(AF_INET, SOCK_STREAM)
-            hostn = filename.replace('www.', '', 1)
+            hostn = file_name.replace('www.', '', 1)
             print('Hostname:', hostn)
             
             try:
                 # Connect to the socket to port 80
                 c.connect((hostn, 80))
-                print('Connected to real web server!')
                 
                 # Create a temporary file on this socket and ask port 80 for the file requested by the client
                 with c.makefile('rwb', 0) as fileobj:
-                    fileobj.write(f"GET https://{filename} HTTP/1.1\r\n".encode())
+                    print(f'GET http://{file_name} HTTP/1.0')
+                    fileobj.write(f"GET http://{file_name} HTTP/1.0\r\n\r\n".encode())
                     # Read the response into buffer
-                    buf = fileobj.read()            
+                    buf = fileobj.read()
+
                     # Create a new file in the cache for the requested file.
                     # Also send the response in the buffer to client socket and the corresponding file in the cache
-                    tcpCliSock.sendall(buf)
-                    with open(f'./{filename}', 'wb') as tmpFile:
+                    tcp_client_socket.sendall(buf)
+                    with open(f'./{file_name}', 'wb') as tmpFile:
                         tmpFile.write(buf)
             except:
                 print('Illegal request')
         else:
             # HTTP response message for file not found
-            tcpCliSock.sendall(b'HTTP/1.1 404 Not Found\r\n')
-            tcpCliSock.sendall(b'Content-Type: text/plain\r\n\r\n')
-            tcpCliSock.sendall(b'404 Not Found')
+            tcp_client_socket.sendall(b'HTTP/1.0 404 Not Found\r\n')
+            tcp_client_socket.sendall(b'Content-Type: text/plain\r\n\r\n')
+            tcp_client_socket.sendall(b'404 Not Found')
 
     # Close the client and the server sockets
-    tcpCliSock.close()
+    tcp_client_socket.close()
 
-tcpSerSock.close()
+tcp_server_socket.close()
