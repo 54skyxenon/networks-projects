@@ -7,7 +7,6 @@ import signal
 import sys
 
 def recv_all(sock, buffer_size=1024):
-    '''Read until EOF in case buffer is too small.'''
     data = b''
 
     while part := sock.recv(buffer_size):
@@ -50,25 +49,29 @@ def main():
         print('Ready to serve...')
         tcp_client_socket, addr = tcp_server_socket.accept()
         print('Received a connection from:', addr)
-        message = recv_all(tcp_client_socket)
+        message = recv_all(tcp_client_socket).split()
 
         if not message:
             continue
 
         # Extract the file name from the given message
-        file_path = message.split()[1]
-        print(file_path)
+        method, file_path = message[0], message[1]
+        print(method, file_path)
         file_name = file_path.partition("/")[2]
         file_name = file_name.replace('www.', '', 1)
         cached_path = f'./cached/{file_name}'
         file_exists = False
 
+        # OPTIONAL EXERCISE: Check whether the file exist in the cache
         try:
-            # OPTIONAL EXERCISE: Check whether the file exist in the cache
+            # Should not cache POSTs, force the request to happen
+            if method == 'POST':
+                raise IOError
+
+            # ProxyServer finds a cache hit and generates a response message
             with open(cached_path, 'rb') as f:
                 cached_payload = f.read()
                 file_exists = True
-                # ProxyServer finds a cache hit and generates a response message
                 send_200(tcp_client_socket, cached_payload)
             
             print('Cache hit!')
@@ -85,8 +88,20 @@ def main():
                     
                     # Create a temporary file on this socket and ask port 80 for the file requested by the client
                     with c.makefile('rwb', 0) as file_obj:
-                        print(f'Cache miss, doing GET /{resource_name} HTTP/1.0')
-                        file_obj.write(f"GET /{resource_name} HTTP/1.0\r\n\r\n".encode())
+                        file_obj.write(f"{method} /{resource_name} HTTP/1.0\r\n".encode())
+
+                        # OPTIONAL EXERCISE: Support POST requests (assuming application/x-www-form-urlencoded)
+                        if method == 'POST':
+                            file_obj.write(b'Content-Type: application/x-www-form-urlencoded\r\n\r\n')
+                            post_data = message[-1]
+                            file_obj.write(post_data.encode())
+                            print(f'Doing POST request with {post_data}')
+                        elif method == 'GET':
+                            file_obj.write(b'\r\n')
+                            print(f'Cache miss, doing GET request')
+                        else:
+                            raise ValueError
+
                         # Read the response into buffer
                         buf = file_obj.read()
                         header, payload = buf.split(b'\r\n\r\n')
@@ -103,10 +118,12 @@ def main():
                         # Also send the response in the buffer to client socket and the corresponding file in the cache
                         send_200(tcp_client_socket, payload)
 
-                        cached_dir = os.path.dirname(cached_path)
-                        os.makedirs(cached_dir, exist_ok=True)
-                        with open(cached_path, 'wb') as tmp_file:
-                            tmp_file.write(payload)
+                        # Caching POST requests not important: https://stackoverflow.com/q/626057/5674135
+                        if method == 'GET':
+                            cached_dir = os.path.dirname(cached_path)
+                            os.makedirs(cached_dir, exist_ok=True)
+                            with open(cached_path, 'wb') as tmp_file:
+                                tmp_file.write(payload)
                 except:
                     print('Illegal request')
             else:
