@@ -43,7 +43,7 @@ def handle_request(connection_socket):
     # Close client socket
     connection_socket.close()
 
-if __name__ == '__main__':
+def main():
     # Prepare a server socket
     with socket(AF_INET, SOCK_STREAM) as server_socket:
         server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -59,3 +59,6 @@ if __name__ == '__main__':
             # OPTIONAL EXERCISE: Service the client request in a separate thread
             t = threading.Thread(target=handle_request, args=(connection_socket,))
             t.start()
+
+if __name__ == '__main__':
+    main()

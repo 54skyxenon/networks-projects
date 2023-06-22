@@ -23,7 +23,7 @@ def http_get(server_host, server_port, filename):
     # Close the socket
     client_socket.close()
 
-if __name__ == '__main__':
+def main():
     # Check if the command line arguments are provided
     if len(sys.argv) != 4:
         print('Usage: ./http-client.py server_host server_port filename')
@@ -36,3 +36,6 @@ if __name__ == '__main__':
 
     # Call the HTTP GET function
     http_get(server_host, server_port, filename)
+
+if __name__ == '__main__':
+    main()
