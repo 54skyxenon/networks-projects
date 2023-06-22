@@ -29,7 +29,11 @@ for sequence_number in range(1, NUM_REQUESTS + 1):
     except timeout:
         print('Request timed out')
 
-# Optional Exercise
-print('\n=== SUMMARY ===')
-print(f'Avg: {round(mean(rtt_data), 3)} ms, Min: {min(rtt_data)} ms, Max: {max(rtt_data)} ms')
-print(f'Packet loss: {100 - len(rtt_data) * 10}%')
+def main():
+    # Optional Exercise
+    print('\n=== SUMMARY ===')
+    print(f'Avg: {round(mean(rtt_data), 3)} ms, Min: {min(rtt_data)} ms, Max: {max(rtt_data)} ms')
+    print(f'Packet loss: {100 - len(rtt_data) * 10}%')
+
+if __name__ == '__main__':
+    main()
