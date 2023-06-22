@@ -117,4 +117,4 @@ def get_route(hostname):
             finally:
                 my_socket.close()
             
-get_route('ethz.ch')
+get_route('google.com')
