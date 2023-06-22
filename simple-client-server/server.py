@@ -18,7 +18,7 @@ On receipt of a client message:
 
 SERVER_NAME = '54skyxenon-server'
 
-if __name__ == '__main__':
+def main():
     # `with` handles closing resources for both the welcome and connection sockets
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as welcome_socket:
         # socket.SO_REUSEADDR mitigates `Address already in use` after successive re-runs
@@ -44,3 +44,6 @@ if __name__ == '__main__':
 
                 serialized = pickle.dumps({'server_name': SERVER_NAME, 'server_number': server_number})
                 connection_socket.send(serialized)
+
+if __name__ == '__main__':
+    main()

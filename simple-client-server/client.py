@@ -21,7 +21,7 @@ Upon receiving server's message:
 CLIENT_NAME = '54skyxenon-client'
 INVALID = 1000
 
-if __name__ == '__main__':
+def main():
     print('The client is ready to send!')
     while True:
         # `with` handles closing resources for the client socket
@@ -43,3 +43,6 @@ if __name__ == '__main__':
             print('Received response from server:')
             print(f'\tClient: {CLIENT_NAME}, Server: {server_name}')
             print(f'\tClient number: {client_number}, Server number: {server_number}, Sum: {client_number + server_number}')
+
+if __name__ == '__main__':
+    main()
