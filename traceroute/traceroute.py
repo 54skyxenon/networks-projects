@@ -117,4 +117,5 @@ def get_route(hostname):
             finally:
                 my_socket.close()
             
-get_route('google.com')
+if __name__ == '__main__':
+    get_route('google.com')
