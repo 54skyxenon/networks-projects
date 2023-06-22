@@ -146,4 +146,5 @@ def ping(host, timeout=1, sample_size=10, sleep_duration=1):
         stats = [min(rtt_data), max(rtt_data), mean(rtt_data), 100 * (sample_size - len(rtt_data)) / sample_size]
         print(f'=== Min: {stats[0]:.3f} secs, Max: {stats[1]:.3f} secs, Avg: {stats[2]:.3f} secs, Loss: {stats[3]:.3f}% === ')
 
-ping('google.com')
+if __name__ == '__main__':
+    ping('google.com')
