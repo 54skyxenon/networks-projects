@@ -2,6 +2,7 @@ from tkinter import *
 import tkinter.messagebox as tkMessageBox
 from PIL import Image, ImageTk
 import socket, threading, os
+from time import time
 
 from RtpPacket import RtpPacket
 
@@ -34,6 +35,13 @@ class Client:
         self.teardownAcked = 0
         self.connectToServer()
         self.frameNbr = 0
+
+        # For optional exercises
+        self.startTime = None
+        self.endTime = None
+        self.packetsReceived = 0
+        self.receivedSize = 0
+        self.bandwidths = []
         
     def createWidgets(self):
         """Build GUI."""
@@ -74,6 +82,19 @@ class Client:
         """Teardown button handler."""
         self.sendRtspRequest(self.TEARDOWN)        
         self.master.destroy() # Close the gui window
+
+        # OPTIONAL EXERCISE: Print summary statistics
+        print('\n==== SUMMARY ====')
+        if self.bandwidths:
+            total_bytes = sum(b for b, t in self.bandwidths)
+            total_time = sum(t for b, t in self.bandwidths)
+            avg_bandwidth = total_bytes / total_time
+            print(f'Average bandwidth: {avg_bandwidth / 1024:.2f} KiB/s')
+
+        if self.frameNbr > 0:
+            loss_rate = 100 * (1 - self.packetsReceived / self.frameNbr)
+            print(f'Packet loss rate: {loss_rate:.2f}%\n')
+        
         os.remove(CACHE_FILE_NAME + str(self.sessionId) + CACHE_FILE_EXT) # Delete the cache image from video
 
     def pauseMovie(self):
@@ -103,6 +124,11 @@ class Client:
                     print("Current Seq Num: " + str(currFrameNbr))
                                         
                     if currFrameNbr > self.frameNbr: # Discard the late packet
+                        # OPTIONAL EXERCISE: maintain stats on packet loss rate and bandwidth
+                        self.packetsReceived += 1
+                        self.receivedSize += len(rtpPacket.getPacket())
+
+                        self.endTime = int(time())
                         self.frameNbr = currFrameNbr
                         self.updateMovie(self.writeFrame(rtpPacket.getPayload()))
             except:
@@ -190,6 +216,22 @@ class Client:
         self.rtspSocket.send(request.encode())        
         print('\nData sent:\n' + request)
     
+    def startProfilingBandwidth(self):
+        """OPTIONAL EXERCISE: For profiling bandwidth statistics."""
+        self.startTime = int(time())
+        self.endTime = int(time())
+    
+    def stopProfilingBandwidth(self):
+        """OPTIONAL EXERCISE: For profiling bandwidth statistics."""
+        if self.startTime is not None:
+            b = self.receivedSize
+            t = self.endTime - self.startTime
+            self.bandwidths.append((b, t))
+            
+        self.startTime = None
+        self.endTime = None
+        self.receivedSize = 0
+    
     def recvRtspReply(self):
         """Receive RTSP reply from the server."""
         while True:
@@ -228,17 +270,20 @@ class Client:
                         self.openRtpPort() 
                     elif self.requestSent == self.PLAY:
                         if self.state == self.READY:
+                            self.startProfilingBandwidth()
                             self.state = self.PLAYING
                     elif self.requestSent == self.PAUSE:
                         if self.state == self.PLAYING:
+                            self.stopProfilingBandwidth()
                             self.state = self.READY
                         
                         # The play thread exits. A new thread is created on resume.
                         self.playEvent.set()
                     elif self.requestSent == self.TEARDOWN:
                         if self.state == self.PLAYING or self.state == self.READY:
+                            self.stopProfilingBandwidth()
                             self.state = self.INIT
-                        
+
                         # Flag the teardownAcked to close the socket.
                         self.teardownAcked = 1 
     
