@@ -36,21 +36,19 @@ class Client:
         self.connectToServer()
         self.frameNbr = 0
 
-        # For optional exercises
+        # OPTIONAL EXERCISE: Summarize session
         self.startTime = None
         self.endTime = None
         self.packetsReceived = 0
         self.receivedSize = 0
         self.bandwidths = []
+
+        # OPTIONAL EXERCISE: Setup automatically upon program entry
+        self.setupMovie()
         
     def createWidgets(self):
         """Build GUI."""
-        # Create Setup button
-        self.setup = Button(self.master, width=20, padx=3, pady=3)
-        self.setup["text"] = "Setup"
-        self.setup["command"] = self.setupMovie
-        self.setup.grid(row=1, column=0, padx=2, pady=2)
-        
+        # OPTIONAL EXERCISE: Omit setup button
         # Create Play button        
         self.start = Button(self.master, width=20, padx=3, pady=3)
         self.start["text"] = "Play"
@@ -63,10 +61,11 @@ class Client:
         self.pause["command"] = self.pauseMovie
         self.pause.grid(row=1, column=2, padx=2, pady=2)
         
-        # Create Teardown button
+        # Create Stop button
+        # OPTIONAL EXERCISE: Stop button automatically does the teardown, just renamed
         self.teardown = Button(self.master, width=20, padx=3, pady=3)
-        self.teardown["text"] = "Teardown"
-        self.teardown["command"] =  self.exitClient
+        self.teardown["text"] = "Stop"
+        self.teardown["command"] = self.exitClient
         self.teardown.grid(row=1, column=3, padx=2, pady=2)
         
         # Create a label to display the movie
