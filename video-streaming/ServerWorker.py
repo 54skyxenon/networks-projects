@@ -9,6 +9,7 @@ class ServerWorker:
 	PLAY = 'PLAY'
 	PAUSE = 'PAUSE'
 	TEARDOWN = 'TEARDOWN'
+	DESCRIBE = 'DESCRIBE'
 	
 	INIT = 0
 	READY = 1
@@ -49,8 +50,23 @@ class ServerWorker:
 		# Get the RTSP sequence number 
 		seq = request[1].split(' ')
 		
+		# OPTIONAL EXERCISE: Process DESCRIBE request
+		if requestType == self.DESCRIBE:
+			# Update state
+			print("processing DESCRIBE\n")
+			
+			stream = self.clientInfo['videoStream']
+			
+			# Send RTSP reply
+			FRAME_PERIOD = 100
+			MPEG_TYPE = 26
+			session_id = self.clientInfo['session']
+			reply = f'RTSP/1.0 200 OK\nCSeq: {seq[1]}\nSession: {session_id}\nVideo Length: {len(stream)} frames\nFrame Period: {FRAME_PERIOD}\nEncoding Type: {MPEG_TYPE} (MPEG)\n'
+			connSocket = self.clientInfo['rtspSocket'][0]
+			connSocket.send(reply.encode())
+
 		# Process SETUP request
-		if requestType == self.SETUP:
+		elif requestType == self.SETUP:
 			if self.state == self.INIT:
 				# Update state
 				print("processing SETUP\n")

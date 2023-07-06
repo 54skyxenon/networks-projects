@@ -2,7 +2,7 @@ from tkinter import *
 import tkinter.messagebox as tkMessageBox
 from PIL import Image, ImageTk
 import socket, threading, os
-from time import time
+from time import time, sleep
 
 from RtpPacket import RtpPacket
 
@@ -19,6 +19,7 @@ class Client:
     PLAY = 1
     PAUSE = 2
     TEARDOWN = 3
+    DESCRIBE = 4
     
     # Initiation..
     def __init__(self, master, serveraddr, serverport, rtpport, filename):
@@ -53,20 +54,26 @@ class Client:
         self.start = Button(self.master, width=20, padx=3, pady=3)
         self.start["text"] = "Play"
         self.start["command"] = self.playMovie
-        self.start.grid(row=1, column=1, padx=2, pady=2)
+        self.start.grid(row=1, column=0, padx=2, pady=2)
         
         # Create Pause button            
         self.pause = Button(self.master, width=20, padx=3, pady=3)
         self.pause["text"] = "Pause"
         self.pause["command"] = self.pauseMovie
-        self.pause.grid(row=1, column=2, padx=2, pady=2)
+        self.pause.grid(row=1, column=1, padx=2, pady=2)
         
         # Create Stop button
         # OPTIONAL EXERCISE: Stop button automatically does the teardown, just renamed
-        self.teardown = Button(self.master, width=20, padx=3, pady=3)
-        self.teardown["text"] = "Stop"
-        self.teardown["command"] = self.exitClient
-        self.teardown.grid(row=1, column=3, padx=2, pady=2)
+        self.stop = Button(self.master, width=20, padx=3, pady=3)
+        self.stop["text"] = "Stop"
+        self.stop["command"] = self.exitClient
+        self.stop.grid(row=1, column=2, padx=2, pady=2)
+
+        # OPTIONAL EXERCISE: Create Describe button
+        self.describe = Button(self.master, width=20, padx=3, pady=3)
+        self.describe["text"] = "Describe"
+        self.describe["command"] = self.getDescription
+        self.describe.grid(row=1, column=3, padx=2, pady=2)
         
         # Create a label to display the movie
         self.label = Label(self.master, height=19)
@@ -109,6 +116,10 @@ class Client:
             self.playEvent = threading.Event()
             self.playEvent.clear()
             self.sendRtspRequest(self.PLAY)
+    
+    def getDescription(self):
+        """OPTIONAL EXERCISE: Describe button handler."""
+        self.sendRtspRequest(self.DESCRIBE)
     
     def listenRtp(self):        
         """Listen for RTP packets."""
@@ -167,8 +178,18 @@ class Client:
     
     def sendRtspRequest(self, requestCode):
         """Send RTSP request to the server."""
+        # OPTIONAL EXERCISE: Describe request
+        if requestCode == self.DESCRIBE:
+            # Update RTSP sequence number.
+            self.rtspSeq += 1
+
+            # Write the RTSP request to be sent.
+            request = f'DESCRIBE {self.fileName} RTSP/1.0\nCSeq: {self.rtspSeq}\nSession: {self.sessionId}'
+
+            # Keep track of the sent request.
+            self.requestSent = self.DESCRIBE
         # Setup request
-        if requestCode == self.SETUP and self.state == self.INIT:
+        elif requestCode == self.SETUP and self.state == self.INIT:
             threading.Thread(target=self.recvRtspReply).start()
             # Update RTSP sequence number.
             self.rtspSeq += 1
@@ -259,8 +280,13 @@ class Client:
             
             # Process only if the session ID is the same
             if self.sessionId == session:
-                if int(lines[0].split(' ')[1]) == 200: 
-                    if self.requestSent == self.SETUP:
+                if int(lines[0].split(' ')[1]) == 200:
+                    # OPTIONAL EXERCISE: Process describe reply
+                    if self.requestSent == self.DESCRIBE:
+                        # Pause is for mitigating Tkinter concurrency issues
+                        sleep(0.5)
+                        tkMessageBox.showinfo('Session Description', '\n'.join(lines[3:]))
+                    elif self.requestSent == self.SETUP:
                         # Update RTSP state.
                         if self.state == self.INIT:
                             self.state = self.READY

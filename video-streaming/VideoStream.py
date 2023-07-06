@@ -6,7 +6,19 @@ class VideoStream:
 		except:
 			raise IOError
 		self.frameNum = 0
-		
+
+	def __len__(self):
+		"""OPTIONAL EXERCISE: Calculate number of frames in video stream."""
+		videoLength = 0
+		lengthStream = open(self.filename, 'rb')
+
+		while data := lengthStream.read(5):
+			framelength = int(data)
+			data = lengthStream.read(framelength)
+			videoLength += 1
+
+		return videoLength
+	
 	def nextFrame(self):
 		"""Get next frame."""
 		data = self.file.read(5) # Get the framelength from the first 5 bits
@@ -21,5 +33,3 @@ class VideoStream:
 	def frameNbr(self):
 		"""Get frame number."""
 		return self.frameNum
-	
-	
