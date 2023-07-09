@@ -75,7 +75,6 @@ class EntityA:
         self.state = 'WAIT_FOR_CALL'
         self.timeout_duration = 100
         self.seqnum = 0
-        self.acknum = 0
         self.sndpkt = None
         self.seqnum_limit = seqnum_limit
 
@@ -83,7 +82,7 @@ class EntityA:
         self.state = 'WAIT_FOR_ACK' if self.state == 'WAIT_FOR_CALL' else 'WAIT_FOR_CALL'
 
     def _make_checksum(self, payload):
-        return self.seqnum + self.acknum + sum(payload)
+        return self.seqnum + sum(payload)
 
     # Called from layer 5, passed the data to be sent to other side.
     # The argument `message` is a Msg containing the data to be sent.
@@ -94,7 +93,7 @@ class EntityA:
         
         payload = message.data
         # Make packet
-        self.sndpkt = Pkt(self.seqnum, self.acknum, self._make_checksum(payload), payload)
+        self.sndpkt = Pkt(self.seqnum, 0, self._make_checksum(payload), payload)
         to_layer3(self, self.sndpkt)
         start_timer(self, self.timeout_duration)
         self._flip_state()
@@ -109,7 +108,6 @@ class EntityA:
         if not is_corrupt(rcvpkt) and rcvpkt.acknum == self.seqnum:
             stop_timer(self)
             self.seqnum = 1 - self.seqnum
-            self.acknum = 1 - self.acknum
             self._flip_state()
     
     # Called when A's timer goes off.
@@ -137,7 +135,7 @@ class EntityB:
     def input(self, rcvpkt):
         payload = rcvpkt.payload
 
-        if not is_corrupt(rcvpkt) and rcvpkt.acknum == self.expected_ack:
+        if not is_corrupt(rcvpkt) and rcvpkt.seqnum == self.expected_ack:
             # We're all good
             to_layer5(self, Msg(payload))
             to_layer3(self, Pkt(0, self.expected_ack, self._make_checksum(payload), payload))
