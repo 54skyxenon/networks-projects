@@ -3,3 +3,4 @@ secrets.txt
 __pycache__
 cached/
 cache-*.jpg
+solution-*.py
