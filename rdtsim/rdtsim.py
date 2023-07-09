@@ -124,25 +124,25 @@ class EntityB:
     #
     # See comment above `EntityA.__init__` for the meaning of seqnum_limit.
     def __init__(self, seqnum_limit):
-        self.expected_ack = 0
+        self.expected_seq = 0
         self.seqnum_limit = seqnum_limit
 
     def _make_checksum(self, payload):
-        return self.expected_ack + sum(payload)
+        return self.expected_seq + sum(payload)
 
     # Called from layer 3, when a packet arrives for layer 4 at EntityB.
     # The argument `packet` is a Pkt containing the newly arrived packet.
     def input(self, rcvpkt):
         payload = rcvpkt.payload
 
-        if not is_corrupt(rcvpkt) and rcvpkt.seqnum == self.expected_ack:
+        if not is_corrupt(rcvpkt) and rcvpkt.seqnum == self.expected_seq:
             # We're all good
             to_layer5(self, Msg(payload))
-            to_layer3(self, Pkt(0, self.expected_ack, self._make_checksum(payload), payload))
-            self.expected_ack = 1 - self.expected_ack
+            to_layer3(self, Pkt(0, self.expected_seq, self._make_checksum(payload), payload))
+            self.expected_seq = 1 - self.expected_seq
         else:
             # Something went wrong
-            to_layer3(self, Pkt(0, 1 - self.expected_ack, self._make_checksum(payload), payload))
+            to_layer3(self, Pkt(0, 1 - self.expected_seq, self._make_checksum(payload), payload))
 
     # Called when B's timer goes off.
     def timer_interrupt(self):
