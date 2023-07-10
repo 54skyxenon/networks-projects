@@ -5,7 +5,7 @@ extern int TRACE;
 extern int YES;
 extern int NO;
 
-struct distance_table dt2;
+distance_table dt2;
 
 /* students to write the following two routines, and maybe some others */
 
@@ -14,12 +14,12 @@ void rtinit2()
 
 }
 
-void rtupdate2(struct rtpkt* rcvdpkt)
+void rtupdate2(rtpkt* rcvdpkt)
 {
 
 }
 
-void printdt2(struct distance_table* dtptr)
+void printdt2(distance_table* dtptr)
 {
   printf("                via     \n");
   printf("   D2 |    0     1    3 \n");

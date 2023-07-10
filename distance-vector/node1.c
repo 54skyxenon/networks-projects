@@ -7,7 +7,7 @@ extern int NO;
 
 int connectcosts1[4] = {1, 0, 1, 999};
 
-struct distance_table dt1;
+distance_table dt1;
 
 /* students to write the following two routines, and maybe some others */
 
@@ -16,12 +16,12 @@ void rtinit1()
 
 }
 
-void rtupdate1(struct rtpkt* rcvdpkt)  
+void rtupdate1(rtpkt* rcvdpkt)  
 {
 
 }
 
-void printdt1(struct distance_table* dtptr)
+void printdt1(distance_table* dtptr)
 {
   printf("             via   \n");
   printf("   D1 |    0     2 \n");

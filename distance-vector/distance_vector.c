@@ -14,18 +14,17 @@ THIS IS THE MAIN ROUTINE.  IT SHOULD NOT BE TOUCHED AT ALL BY STUDENTS!
 
 /* a rtpkt is the packet sent from one routing update process to
    another via the call tolayer3() */
-struct rtpkt {
+typedef struct rtpkt {
   int sourceid;       /* id of sending router sending this pkt */
-  int destid;         /* id of router to which pkt being sent 
-                         (must be an immediate neighbor) */
+  int destid;         /* id of router to which pkt being sent (must be an immediate neighbor) */
   int mincost[4];    /* min cost to node 0 ... 3 */
-  };
+} rtpkt;
 
 int TRACE = 1;             /* for my debugging */
 int YES = 1;
 int NO = 0;
 
-void creatertpkt(struct rtpkt* initrtpkt, int srcid, int destid, int mincosts[])
+void creatertpkt(rtpkt* initrtpkt, int srcid, int destid, int mincosts[])
 {
   int i;
   initrtpkt->sourceid = srcid;
@@ -50,15 +49,15 @@ the emulator, you're welcome to look at the code - but again, you should have
 to, and you defeinitely should not have to modify
 ******************************************************************/
 
-struct event {
+typedef struct event {
    float evtime;           /* event time */
    int evtype;             /* event type code */
    int eventity;           /* entity where event occurs */
-   struct rtpkt *rtpktptr; /* ptr to packet (if any) assoc w/ this event */
-   struct event *prev;
-   struct event *next;
- };
-struct event *evlist = NULL;   /* the event list */
+   rtpkt *rtpktptr; /* ptr to packet (if any) assoc w/ this event */
+   event *prev;
+   event *next;
+ } event;
+event *evlist = NULL;   /* the event list */
 
 /* possible events: */
 #define  FROM_LAYER2     2
@@ -69,7 +68,7 @@ float clocktime = 0.000;
 
 int main()
 {
-   struct event *eventptr;
+   event *eventptr;
    
    init();
    
@@ -131,7 +130,7 @@ void init()                         /* initialize the simulator */
   int i;
   float sum, avg;
   float jimsrand();
-  struct event *evptr;  
+  event *evptr;  
   
    printf("Enter TRACE:");
    scanf("%d",&TRACE);
@@ -156,13 +155,13 @@ void init()                         /* initialize the simulator */
 
    /* initialize future link changes */
   if (LINKCHANGES==1)   {
-   evptr = (struct event *)malloc(sizeof(struct event));
+   evptr = (event *)malloc(sizeof(event));
    evptr->evtime =  10000.0;
    evptr->evtype =  LINK_CHANGE;
    evptr->eventity =  -1;
    evptr->rtpktptr =  NULL;
    insertevent(evptr);
-   evptr = (struct event *)malloc(sizeof(struct event));
+   evptr = (event *)malloc(sizeof(event));
    evptr->evtype =  LINK_CHANGE;
    evptr->evtime =  20000.0;
    evptr->rtpktptr =  NULL;
@@ -189,9 +188,9 @@ float jimsrand()
 /*****************************************************/
  
 
-void insertevent(struct event* p)
+void insertevent(event* p)
 {
-   struct event *q,*qold;
+   event *q,*qold;
 
    if (TRACE>3) {
       printf("            INSERTEVENT: time is %lf\n",clocktime);
@@ -228,7 +227,7 @@ void insertevent(struct event* p)
 
 void printevlist()
 {
-  struct event *q;
+  event *q;
   printf("--------------\nEvent List Follows:\n");
   for(q = evlist; q!=NULL; q=q->next) {
     printf("Event time: %f, type: %d entity: %d\n",q->evtime,q->evtype,q->eventity);
@@ -238,10 +237,10 @@ void printevlist()
 
 
 /************************** TOLAYER2 ***************/
-void tolayer2(struct rtpkt packet)
+void tolayer2(rtpkt packet)
 {
- struct rtpkt *mypktptr;
- struct event *evptr, *q;
+ rtpkt *mypktptr;
+ event *evptr, *q;
  float jimsrand(),lastime;
  int i;
 
@@ -277,7 +276,7 @@ void tolayer2(struct rtpkt packet)
 
 /* make a copy of the packet student just gave me since he/she may decide */
 /* to do something with the packet after we return back to him/her */ 
- mypktptr = (struct rtpkt *) malloc(sizeof(struct rtpkt));
+ mypktptr = (rtpkt *) malloc(sizeof(rtpkt));
  mypktptr->sourceid = packet.sourceid;
  mypktptr->destid = packet.destid;
  for (i=0; i<4; i++)
@@ -291,7 +290,7 @@ void tolayer2(struct rtpkt packet)
    }
 
 /* create future event for arrival of packet at the other side */
-  evptr = (struct event *)malloc(sizeof(struct event));
+  evptr = (event *)malloc(sizeof(event));
   evptr->evtype =  FROM_LAYER2;   /* packet will pop out from layer3 */
   evptr->eventity = packet.destid; /* event occurs at other entity */
   evptr->rtpktptr = mypktptr;       /* save ptr to my copy of packet */
