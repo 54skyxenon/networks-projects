@@ -29,4 +29,4 @@ Within the scripts, `EntityA` is the sender and `EntityB` is the receiver.
 
 You can find finite-state machine diagrams for both implementations in section 3.4 of the [textbook](https://gaia.cs.umass.edu/kurose_ross).
 
-_NOTE: Bidirectional transmission isn't supported by the Python simulator, but is supported in the C template the authors provide._
+_NOTE: Bidirectional transmission isn't supported by the Python simulator, but is supported in the [C template](http://gaia.cs.umass.edu/kurose/transport/prog2.c) the authors provide._
