@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "network.h"
 
 #define LINKCHANGES 0
@@ -10,15 +9,6 @@ Programming assignment 3: implementing distributed, asynchronous,
 THIS IS THE MAIN ROUTINE.  IT SHOULD NOT BE TOUCHED AT ALL BY STUDENTS!
 
 **********************************************************************/
-
-/* a rtpkt is the packet sent from one routing update process to
-   another via the call tolayer3() */
-typedef struct rtpkt
-{
-  int sourceid;   /* id of sending router sending this pkt */
-  int destid;     /* id of router to which pkt being sent (must be an immediate neighbor) */
-  int mincost[4]; /* min cost to node 0 ... 3 */
-} rtpkt;
 
 int TRACE = 1; /* for my debugging */
 int YES = 1;
