@@ -11,6 +11,7 @@ distance_table dt2;
 
 void rtinit2()
 {
+  printf("rtinit2 called!\n");
 }
 
 void rtupdate2(rtpkt *rcvdpkt)

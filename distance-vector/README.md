@@ -6,8 +6,8 @@ NOTE: The boilerplate code from Dr. Kurose was refactored to fix warnings and fo
 
 ### Usage
 
-To compile all the source files at once:
+The Makefile compiles all the source files at once:
 ```bash
-$ cc distance_vector.c node0.c node1.c node2.c node3.c -o program.out
+$ make
 $ ./program.out
 ```

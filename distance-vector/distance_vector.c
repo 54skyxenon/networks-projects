@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "network.h"
 
-#define LINKCHANGES 1
+#define LINKCHANGES 0
 /* ******************************************************************
 Programming assignment 3: implementing distributed, asynchronous,
                           distance vector routing.
