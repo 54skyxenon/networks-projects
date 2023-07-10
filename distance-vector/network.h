@@ -1,12 +1,18 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-
 // distance_vector.c
 struct rtpkt;
 struct event;
-int init();
-int insertevent(struct event*);
+void init();
+void creatertpkt(struct rtpkt*, int, int, int[]);
+void insertevent(struct event*);
+void tolayer2(struct rtpkt);
+
+// Across all nodes
+struct distance_table {
+  int costs[4][4];
+};
 
 // node0.c
 void rtinit0();

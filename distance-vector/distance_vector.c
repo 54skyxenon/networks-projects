@@ -25,12 +25,7 @@ int TRACE = 1;             /* for my debugging */
 int YES = 1;
 int NO = 0;
 
-creatertpkt( initrtpkt, srcid, destid, mincosts)
-struct rtpkt *initrtpkt;
-int srcid;
-int destid;
-int mincosts[];
-
+void creatertpkt(struct rtpkt* initrtpkt, int srcid, int destid, int mincosts[])
 {
   int i;
   initrtpkt->sourceid = srcid;
@@ -72,7 +67,7 @@ struct event *evlist = NULL;   /* the event list */
 float clocktime = 0.000;
 
 
-main()
+int main()
 {
    struct event *eventptr;
    
@@ -131,9 +126,7 @@ terminate:
    printf("\nSimulator terminated at t=%f, no packets in medium\n", clocktime);
 }
 
-
-
-init()                         /* initialize the simulator */
+void init()                         /* initialize the simulator */
 {
   int i;
   float sum, avg;
@@ -196,8 +189,7 @@ float jimsrand()
 /*****************************************************/
  
 
-insertevent(p)
-   struct event *p;
+void insertevent(struct event* p)
 {
    struct event *q,*qold;
 
@@ -234,7 +226,7 @@ insertevent(p)
          }
 }
 
-printevlist()
+void printevlist()
 {
   struct event *q;
   printf("--------------\nEvent List Follows:\n");
@@ -246,9 +238,7 @@ printevlist()
 
 
 /************************** TOLAYER2 ***************/
-void tolayer2(packet)
-  struct rtpkt packet;
-  
+void tolayer2(struct rtpkt packet)
 {
  struct rtpkt *mypktptr;
  struct event *evptr, *q;
