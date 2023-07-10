@@ -73,7 +73,7 @@ class EntityA:
     # all seqnums must be in the range 0-15.
     def __init__(self, seqnum_limit):
         self.state = 'WAIT_FOR_CALL'
-        self.timeout_duration = 100
+        self.timeout_duration = 10
         self.seqnum = 0
         self.sndpkt = None
         self.seqnum_limit = seqnum_limit
