@@ -11,24 +11,22 @@ distance_table dt1;
 
 /* students to write the following two routines, and maybe some others */
 
-void rtinit1() 
+void rtinit1()
 {
-
 }
 
-void rtupdate1(rtpkt* rcvdpkt)  
+void rtupdate1(rtpkt *rcvdpkt)
 {
-
 }
 
-void printdt1(distance_table* dtptr)
+void printdt1(distance_table *dtptr)
 {
   printf("             via   \n");
   printf("   D1 |    0     2 \n");
   printf("  ----|-----------\n");
-  printf("     0|  %3d   %3d\n",dtptr->costs[0][0], dtptr->costs[0][2]);
-  printf("dest 2|  %3d   %3d\n",dtptr->costs[2][0], dtptr->costs[2][2]);
-  printf("     3|  %3d   %3d\n",dtptr->costs[3][0], dtptr->costs[3][2]);
+  printf("     0|  %3d   %3d\n", dtptr->costs[0][0], dtptr->costs[0][2]);
+  printf("dest 2|  %3d   %3d\n", dtptr->costs[2][0], dtptr->costs[2][2]);
+  printf("     3|  %3d   %3d\n", dtptr->costs[3][0], dtptr->costs[3][2]);
 }
 
 void linkhandler1(int linkid, int newcost)
@@ -37,5 +35,4 @@ void linkhandler1(int linkid, int newcost)
 /* to use this routine, you'll need to change the value of the LINKCHANGE */
 /* constant definition in prog3.c from 0 to 1 */
 {
-
 }
