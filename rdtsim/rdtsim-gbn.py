@@ -1,3 +1,6 @@
+#!/usr/local/bin/python3
+# rdtsim-gbn.py
+
 ##
 ## Python version of:
 ##
@@ -72,46 +75,52 @@ class EntityA:
     # zero and seqnum_limit-1, inclusive.  E.g., if seqnum_limit is 16, then
     # all seqnums must be in the range 0-15.
     def __init__(self, seqnum_limit):
-        self.timeout_duration = 10
+        self.timeout_duration = 10 * seqnum_limit
         self.base = 0
         self.nextseqnum = 0
-        self.sndpkt = []
+        self.pending_ack = 0
+        self.sndpkt = [None] * seqnum_limit
         self.seqnum_limit = seqnum_limit
 
     def _make_checksum(self, payload):
         return self.nextseqnum + sum(payload)
-
+    
     # Called from layer 5, passed the data to be sent to other side.
     # The argument `message` is a Msg containing the data to be sent.
     # AKA rdt_send(data)
     def output(self, message):
-        if self.nextseqnum < self.base + self.seqnum_limit:
+        if self.pending_ack < self.seqnum_limit:
             payload = message.data
-            self.sndpkt.append(Pkt(self.nextseqnum, 0, self._make_checksum(payload), payload))
-            to_layer3(self, self.sndpkt[self.nextseqnum])
+
+            current_pkt = Pkt(self.nextseqnum, 0, self._make_checksum(payload), payload)
+            self.sndpkt[self.nextseqnum] = current_pkt
+            to_layer3(self, current_pkt)
+
             if self.base == self.nextseqnum:
                 start_timer(self, self.timeout_duration)
-            self.nextseqnum += 1
+            
+            self.nextseqnum = (self.nextseqnum + 1) % self.seqnum_limit
+            self.pending_ack += 1
 
     # Called from layer 3, when a packet arrives for layer 4 at EntityA.
     # The argument `packet` is a Pkt containing the newly arrived packet.
     # AKA rdt_rcv(data)
     def input(self, packet):
-        if is_corrupt(packet):
+        if is_corrupt(packet) or packet.acknum != self.base:
             return
         
-        self.base = packet.acknum + 1
+        self.pending_ack -= 1
+        self.sndpkt[self.base] = None
+        self.base = (packet.acknum + 1) % self.seqnum_limit
         if self.base == self.nextseqnum:
             stop_timer(self)
-        else:
-            start_timer(self, self.timeout_duration)
 
     # Called when A's timer goes off.
     # AKA timeout
     def timer_interrupt(self):
         start_timer(self, self.timeout_duration)
-        for i in range(self.base, self.nextseqnum):
-            to_layer3(self, self.sndpkt[i])
+        for i in range(self.base, self.base + self.pending_ack):
+            to_layer3(self, self.sndpkt[i % self.seqnum_limit])
 
 class EntityB:
     # The following method will be called once (only) before any other
@@ -120,7 +129,6 @@ class EntityB:
     # See comment above `EntityA.__init__` for the meaning of seqnum_limit.
     def __init__(self, seqnum_limit):
         self.expectedseqnum = 0
-        self.sndpkt = Pkt(0, 0, self._make_checksum(b'ACK'), b'ACK')
         self.seqnum_limit = seqnum_limit
 
     def _make_checksum(self, payload):
@@ -131,13 +139,12 @@ class EntityB:
     def input(self, packet):
         if not is_corrupt(packet) and packet.seqnum == self.expectedseqnum:
             to_layer5(self, Msg(packet.payload))
-            self.sndpkt = Pkt(0, self.expectedseqnum, self._make_checksum(packet.payload), packet.payload)
-            to_layer3(self, self.sndpkt)
-            self.expectedseqnum += 1
+            to_layer3(self, Pkt(0, self.expectedseqnum, self._make_checksum(packet.payload), packet.payload))
+            self.expectedseqnum = (self.expectedseqnum + 1) % self.seqnum_limit
 
     # Called when B's timer goes off.
     def timer_interrupt(self):
-        to_layer3(self, self.sndpkt)
+        pass
 
 ###############################################################################
 
