@@ -42,41 +42,7 @@ import random
 import sys
 import time
 
-###############################################################################
-
-## ************************* BASIC DATA STRUCTURES ****************************
-##
-## STUDENTS: Do not modify these definitions.
-##
-## ****************************************************************************
-
-# A Msg is the data unit passed from layer 5 (teacher's code) to layer 4
-# (student's code).  It contains the data (bytes) to be delivered to layer 5
-# via the student's transport-level protocol entities.
-#
-class Msg:
-    MSG_SIZE = 20
-
-    def __init__(self, data):
-        self.data = data                # type: bytes[MSG_SIZE]
-
-    def __str__(self):
-        return 'Msg(data=%s)' % (self.data)
-
-# A Pkt is the data unit passed from layer 4 (student's code) to layer 3
-# (teacher's code).  Note the pre-defined packet structure, which all students
-# must follow.
-#
-class Pkt:
-    def __init__(self, seqnum, acknum, checksum, payload):
-        self.seqnum = seqnum            # type: integer
-        self.acknum = acknum            # type: integer
-        self.checksum = checksum        # type: integer
-        self.payload = payload          # type: bytes[Msg.MSG_SIZE]
-
-    def __str__(self):
-        return ('Pkt(seqnum=%s, acknum=%s, checksum=%s, payload=%s)'
-                % (self.seqnum, self.acknum, self.checksum, self.payload))
+from datastructures import Msg, Pkt
 
 ###############################################################################
 
@@ -106,21 +72,46 @@ class EntityA:
     # zero and seqnum_limit-1, inclusive.  E.g., if seqnum_limit is 16, then
     # all seqnums must be in the range 0-15.
     def __init__(self, seqnum_limit):
-        pass
+        self.timeout_duration = 10
+        self.base = 0
+        self.nextseqnum = 0
+        self.sndpkt = []
+        self.seqnum_limit = seqnum_limit
+
+    def _make_checksum(self, payload):
+        return self.nextseqnum + sum(payload)
 
     # Called from layer 5, passed the data to be sent to other side.
     # The argument `message` is a Msg containing the data to be sent.
+    # AKA rdt_send(data)
     def output(self, message):
-        pass
+        if self.nextseqnum < self.base + self.seqnum_limit:
+            payload = message.data
+            self.sndpkt.append(Pkt(self.nextseqnum, 0, self._make_checksum(payload), payload))
+            to_layer3(self, self.sndpkt[self.nextseqnum])
+            if self.base == self.nextseqnum:
+                start_timer(self, self.timeout_duration)
+            self.nextseqnum += 1
 
     # Called from layer 3, when a packet arrives for layer 4 at EntityA.
     # The argument `packet` is a Pkt containing the newly arrived packet.
+    # AKA rdt_rcv(data)
     def input(self, packet):
-        pass
+        if is_corrupt(packet):
+            return
+        
+        self.base = packet.acknum + 1
+        if self.base == self.nextseqnum:
+            stop_timer(self)
+        else:
+            start_timer(self, self.timeout_duration)
 
     # Called when A's timer goes off.
+    # AKA timeout
     def timer_interrupt(self):
-        pass
+        start_timer(self, self.timeout_duration)
+        for i in range(self.base, self.nextseqnum):
+            to_layer3(self, self.sndpkt[i])
 
 class EntityB:
     # The following method will be called once (only) before any other
@@ -128,16 +119,25 @@ class EntityB:
     #
     # See comment above `EntityA.__init__` for the meaning of seqnum_limit.
     def __init__(self, seqnum_limit):
-        pass
+        self.expectedseqnum = 0
+        self.sndpkt = Pkt(0, 0, self._make_checksum(b'ACK'), b'ACK')
+        self.seqnum_limit = seqnum_limit
+
+    def _make_checksum(self, payload):
+        return self.expectedseqnum + sum(payload)
 
     # Called from layer 3, when a packet arrives for layer 4 at EntityB.
     # The argument `packet` is a Pkt containing the newly arrived packet.
     def input(self, packet):
-        pass
+        if not is_corrupt(packet) and packet.seqnum == self.expectedseqnum:
+            to_layer5(self, Msg(packet.payload))
+            self.sndpkt = Pkt(0, self.expectedseqnum, self._make_checksum(packet.payload), packet.payload)
+            to_layer3(self, self.sndpkt)
+            self.expectedseqnum += 1
 
     # Called when B's timer goes off.
     def timer_interrupt(self):
-        pass
+        to_layer3(self, self.sndpkt)
 
 ###############################################################################
 
@@ -158,6 +158,12 @@ class EntityB:
 ##   to_layer3(self, Pkt(...)) # Construct a Pkt and send it to layer3.
 ##
 ## ****************************************************************************
+
+def reconstruct_checksum(packet):
+    return packet.seqnum + packet.acknum + sum(packet.payload)
+
+def is_corrupt(packet):
+    return reconstruct_checksum(packet) != packet.checksum
 
 def start_timer(calling_entity, increment):
     the_sim.start_timer(calling_entity, increment)
