@@ -2,5 +2,7 @@
 secrets.txt
 __pycache__
 cached/
+.vscode/
 cache-*.jpg
 solution-*.py
+*.out
