@@ -17,11 +17,11 @@ void rtinit(int target, distance_table *dt, const int connectcosts[]) {
   propagate(target, connectcosts);
 }
 
-// Send its directly-connected neighbors the cost of it minimum cost paths
-void propagate(int from, const int connectcosts[]) {
+// Send its directly-connected neighbors the cost of its minimum cost paths
+void propagate(int from, const int costs[]) {
   for (int adj = 0; adj < 4; adj++) {
     rtpkt *pkt = (rtpkt *)malloc(sizeof(rtpkt));
-    creatertpkt(pkt, from, adj, connectcosts);
+    creatertpkt(pkt, from, adj, costs);
     tolayer2(*pkt);
     free(pkt);
   }
@@ -52,4 +52,12 @@ int dtupdate(rtpkt *rcvdpkt, distance_table *dt) {
   }
 
   return changed;
+}
+
+// Send a message to all of the nodes asking for reinitialization
+void resetall() {
+  rtinit0();
+  rtinit1();
+  rtinit2();
+  rtinit3();
 }

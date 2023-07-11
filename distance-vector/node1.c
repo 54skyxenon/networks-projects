@@ -2,7 +2,7 @@
 
 extern int TRACE;
 
-const int connectcosts1[4] = {1, 0, 1, INFINITY};
+int connectcosts1[4] = {1, 0, 1, INFINITY};
 
 distance_table dt1;
 
@@ -36,4 +36,6 @@ void linkhandler1(int linkid, int newcost) {
 /* to use this routine, you'll need to change the value of the LINKCHANGE */
 /* constant definition in prog3.c from 0 to 1 */
   printf("\nlinkhandler1 called with linkid = %d, newcost = %d\n", linkid, newcost);
+  connectcosts1[linkid] = newcost;
+  resetall();
 }

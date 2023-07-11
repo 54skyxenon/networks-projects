@@ -33,6 +33,7 @@ typedef struct distance_table
 void rtinit(int, distance_table *, const int[]);
 void propagate(int from, const int connectcosts[]);
 int dtupdate(rtpkt *, distance_table *);
+void resetall();
 
 // node0.c
 void rtinit0();
