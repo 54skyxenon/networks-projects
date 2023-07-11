@@ -40,5 +40,5 @@ void linkhandler0(int linkid, int newcost) {
 /* constant definition in prog3.c from 0 to 1 */
   printf("\nlinkhandler0 called with linkid = %d, newcost = %d\n", linkid, newcost);
   connectcosts0[linkid] = newcost;
-  resetall();
+  resetall(0);
 }

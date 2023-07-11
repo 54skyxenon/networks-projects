@@ -55,7 +55,8 @@ int dtupdate(rtpkt *rcvdpkt, distance_table *dt) {
 }
 
 // Send a message to all of the nodes asking for reinitialization
-void resetall() {
+void resetall(int from) {
+  printf("Node %d requests everyone to rebuild their distance tables!\n", from);
   rtinit0();
   rtinit1();
   rtinit2();
