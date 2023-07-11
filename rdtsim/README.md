@@ -2,7 +2,9 @@
 
 ### Purpose
 
-Simulation of a custom TCP-like protocol - one that can retransmit corrupted or dropped packets. Two implementations exist: the simple Alternating-Bit (AB) protocol along with the more complex and efficient Go-Back-N (GBN) protocol.
+Simulation of a custom TCP-like protocol - one that can retransmit corrupted or dropped packets. Two implementations exist: the simple Alternating-Bit (AB) protocol along with the more efficient but complex Go-Back-N (GBN) protocol.
+
+The project is explained in-depth on [Dr. Kurose's website.](https://gaia.cs.umass.edu/kurose_ross/programming/RDT/RDT_Implementing%20a%20Reliable%20Transport%20Protocol.html)
 
 ### Usage
 The simulator can be run with several options:
