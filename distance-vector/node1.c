@@ -35,4 +35,5 @@ void linkhandler1(int linkid, int newcost) {
 /* You can leave this routine empty if you're an undergrad. If you want */
 /* to use this routine, you'll need to change the value of the LINKCHANGE */
 /* constant definition in prog3.c from 0 to 1 */
+  printf("\nlinkhandler1 called with linkid = %d, newcost = %d\n", linkid, newcost);
 }
