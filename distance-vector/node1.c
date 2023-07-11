@@ -1,8 +1,6 @@
 #include "network.h"
 
 extern int TRACE;
-extern int YES;
-extern int NO;
 
 const int connectcosts1[4] = {1, 0, 1, INFINITY};
 

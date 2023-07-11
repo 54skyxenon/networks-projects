@@ -5,7 +5,8 @@
 #include <stdlib.h>
 
 #define INFINITY 999
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define YES 1
+#define NO 0
 
 // distance_vector.c
 /* a rtpkt is the packet sent from one routing update process to

@@ -11,8 +11,6 @@ THIS IS THE MAIN ROUTINE.  IT SHOULD NOT BE TOUCHED AT ALL BY STUDENTS!
 **********************************************************************/
 
 int TRACE = 1; /* for my debugging */
-int YES = 1;
-int NO = 0;
 
 void creatertpkt(rtpkt *initrtpkt, int srcid, int destid, const int mincosts[])
 {
