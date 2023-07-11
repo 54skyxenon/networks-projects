@@ -1,41 +1,26 @@
-#include <stdio.h>
 #include "network.h"
 
 extern int TRACE;
 extern int YES;
 extern int NO;
 
-int connectcosts1[4] = {1, 0, 1, INFINITY};
+const int connectcosts1[4] = {1, 0, 1, INFINITY};
 
 distance_table dt1;
 
 /* students to write the following two routines, and maybe some others */
 
 void rtinit1() {
-  printf("rtinit1 called!\n");
-
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      dt1.costs[i][j] = INFINITY;
-    }
-  }
-
-  for (int adj = 0; adj < 4; adj++) {
-    dt1.costs[1][adj] = dt1.costs[adj][1] = connectcosts1[adj];
-  }
-
-  // Send its directly-connected neighbors the cost of it minimum cost paths
-  for (int adj = 0; adj < 4; adj++) {
-    if (adj != 1) {
-      rtpkt *pkt = (rtpkt *)malloc(sizeof(rtpkt *));
-      creatertpkt(pkt, 1, adj, connectcosts1);
-      tolayer2(*pkt);
-    }
-  }
+  rtinit(1, &dt1, connectcosts1);
 }
 
 void rtupdate1(rtpkt *rcvdpkt) {
   printf("rtupdate1 called!\n");
+
+  if (dtupdate(rcvdpkt, &dt1)) {
+    propagate(1, dt1.costs[1]);
+  }
+  printdt1(&dt1);
 }
 
 void printdt1(distance_table *dtptr) {

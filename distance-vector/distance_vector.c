@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "network.h"
 
 #define LINKCHANGES 0
@@ -7,6 +6,7 @@ Programming assignment 3: implementing distributed, asynchronous,
                           distance vector routing.
 
 THIS IS THE MAIN ROUTINE.  IT SHOULD NOT BE TOUCHED AT ALL BY STUDENTS!
+(Brandon: I had to change some parts to compile :D)
 
 **********************************************************************/
 
@@ -14,7 +14,7 @@ int TRACE = 1; /* for my debugging */
 int YES = 1;
 int NO = 0;
 
-void creatertpkt(rtpkt *initrtpkt, int srcid, int destid, int mincosts[])
+void creatertpkt(rtpkt *initrtpkt, int srcid, int destid, const int mincosts[])
 {
   int i;
   initrtpkt->sourceid = srcid;
