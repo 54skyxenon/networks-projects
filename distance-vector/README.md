@@ -28,4 +28,4 @@ Uses the Bellman-Ford algorithm to optimize the distance tables.
 
 Link cost changing and the "Count to Infinity" problem are handled by requesting all nodes to rebuild their distance tables. A more efficient but complex solution would be [Poison Reverse](https://www.geeksforgeeks.org/what-is-poison-reverse-in-networking/) implemented by [jsevilla274](https://github.com/jsevilla274/distancevector)
 
-NOTE: The boilerplate code from Dr. Kurose was refactored to fix warnings and follow modern C style conventions.
+NOTE: The boilerplate code from Dr. Kurose was refactored to fix compilation warnings and follow modern C style conventions.
